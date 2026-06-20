@@ -1,0 +1,27 @@
+namePrefix: purpose-
+
+resources:
+  - ../../base
+
+labels:
+  - pairs:
+      app.kubernetes.io/instance: purpose-rabbitmq
+    includeSelectors: true
+
+patches:
+  - target:
+      kind: PersistentVolumeClaim
+      name: rabbitmq-data
+    patch: |-
+      - op: replace
+        path: /spec/resources/requests/storage
+        value: 5Gi
+
+secretGenerator:
+  - name: rabbitmq-secret
+    namespace: infra
+    envs:
+      - secret.env
+
+generatorOptions:
+  disableNameSuffixHash: true

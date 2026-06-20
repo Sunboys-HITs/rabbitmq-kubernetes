@@ -1,0 +1,16 @@
+resources:
+  - ../../base
+
+labels:
+  - pairs:
+      app.kubernetes.io/instance: rabbitmq
+    includeSelectors: true
+
+secretGenerator:
+  - name: rabbitmq-secret
+    namespace: infra
+    envs:
+      - secret.env
+
+generatorOptions:
+  disableNameSuffixHash: true
