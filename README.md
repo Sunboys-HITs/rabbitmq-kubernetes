@@ -33,6 +33,24 @@ kubectl apply -k k8s/overlays/auth-service
 kubectl -n infra rollout status statefulset/auth-rabbitmq
 ```
 
+## GitHub Actions Deploy
+
+Pushes to `main` deploy the `dev` overlay automatically.
+
+Required repository secret:
+
+```text
+KUBECONFIG_B64
+```
+
+Create it from the kubeconfig that points to the k3s API:
+
+```bash
+base64 -w0 ~/.kube/sunboys-k3s.yaml
+```
+
+The workflow can also be started manually and pointed at another overlay: `dev`, `auth-service`, or `ci`.
+
 ## Connection
 
 Shared dev AMQP URL:

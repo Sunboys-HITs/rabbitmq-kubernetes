@@ -1,0 +1,66 @@
+name: Deploy RabbitMQ
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      overlay:
+        description: Kustomize overlay to deploy
+        required: true
+        default: dev
+        type: choice
+        options:
+          - dev
+          - auth-service
+          - ci
+
+env:
+  DEFAULT_OVERLAY: dev
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select overlay
+        run: |
+          OVERLAY="${{ github.event.inputs.overlay }}"
+          if [ -z "$OVERLAY" ]; then
+            OVERLAY="$DEFAULT_OVERLAY"
+          fi
+          echo "OVERLAY=$OVERLAY" >> "$GITHUB_ENV"
+          echo "OVERLAY_PATH=k8s/overlays/$OVERLAY" >> "$GITHUB_ENV"
+
+      - name: Configure kubeconfig
+        run: |
+          test -n "${{ secrets.KUBECONFIG_B64 }}" || {
+            echo 'KUBECONFIG_B64 GitHub Actions secret is not configured' >&2
+            exit 1
+          }
+          mkdir -p "$HOME/.kube"
+          echo "${{ secrets.KUBECONFIG_B64 }}" | base64 -d > "$HOME/.kube/config"
+          chmod 600 "$HOME/.kube/config"
+
+      - name: Validate manifests
+        run: kubectl kustomize "$OVERLAY_PATH" > /tmp/rabbitmq.yaml
+
+      - name: Deploy RabbitMQ
+        run: kubectl apply -k "$OVERLAY_PATH"
+
+      - name: Wait for rollout
+        run: |
+          STATEFULSET="$(kubectl kustomize "$OVERLAY_PATH" | awk '
+            $1 == "kind:" && $2 == "StatefulSet" { in_statefulset = 1 }
+            in_statefulset && $1 == "name:" { print $2; exit }
+          ')"
+          kubectl -n infra rollout status statefulset/"$STATEFULSET" --timeout=180s
+
+      - name: Show RabbitMQ resources
+        run: kubectl -n infra get statefulset,pod,service,pvc -l app.kubernetes.io/name=rabbitmq -o wide
