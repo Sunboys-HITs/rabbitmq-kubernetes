@@ -15,7 +15,7 @@ Kubernetes manifests for running RabbitMQ as an internal message broker for SUNB
 
 | Target | Command | AMQP DNS | Management DNS |
 | --- | --- | --- | --- |
-| Shared dev broker | `kubectl apply -k k8s/overlays/dev` | `rabbitmq.infra.svc.cluster.local:5672` | `rabbitmq-management.infra.svc.cluster.local:15672` |
+| Shared dev broker | `kubectl apply -k k8s/overlays/dev` | `rabbitmq.infra.svc.cluster.local:5672` | `rabbitmq.31.192.111.254.sslip.io` |
 | Auth service broker | `kubectl apply -k k8s/overlays/auth-service` | `auth-rabbitmq.infra.svc.cluster.local:5672` | `auth-rabbitmq-management.infra.svc.cluster.local:15672` |
 | CI/test broker | `kubectl apply -k k8s/overlays/ci` | `ci-rabbitmq.infra.svc.cluster.local:5672` | `ci-rabbitmq-management.infra.svc.cluster.local:15672` |
 
@@ -67,7 +67,18 @@ amqp://auth_service:change_me_auth@auth-rabbitmq.infra.svc.cluster.local:5672/
 
 ## Management UI
 
-RabbitMQ management is kept internal as a ClusterIP service.
+The shared dev overlay publishes RabbitMQ Management through Traefik Ingress.
+After deployment, open:
+
+```text
+http://rabbitmq.31.192.111.254.sslip.io
+```
+
+Only the standard ingress TCP port `80` needs to be publicly accessible.
+The `auth-service` and `ci` management services remain internal `ClusterIP`
+services.
+
+To access an internal management service, use port-forwarding:
 
 Port-forward when needed:
 

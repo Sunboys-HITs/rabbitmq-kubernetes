@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rabbitmq-management
+  namespace: infra
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: rabbitmq.31.192.111.254.sslip.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: rabbitmq-management
+                port:
+                  number: 15672

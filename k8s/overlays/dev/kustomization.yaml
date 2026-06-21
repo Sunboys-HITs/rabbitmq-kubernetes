@@ -1,5 +1,6 @@
 resources:
   - ../../base
+  - management-ingress.yaml
 
 labels:
   - pairs:
