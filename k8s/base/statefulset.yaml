@@ -44,10 +44,10 @@ spec:
               containerPort: 15672
           resources:
             requests:
-              cpu: 100m
+              cpu: 500m
               memory: 256Mi
             limits:
-              cpu: "1"
+              cpu: "2"
               memory: 768Mi
           envFrom:
             - secretRef:
@@ -70,7 +70,7 @@ spec:
               port: amqp
             periodSeconds: 10
             timeoutSeconds: 5
-            failureThreshold: 30
+            failureThreshold: 60
       volumes:
         - name: rabbitmq-data
           persistentVolumeClaim:
