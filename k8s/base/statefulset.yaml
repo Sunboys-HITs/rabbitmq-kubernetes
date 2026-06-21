@@ -56,23 +56,21 @@ spec:
             - name: rabbitmq-data
               mountPath: /var/lib/rabbitmq
           readinessProbe:
-            exec:
-              command:
-                - rabbitmq-diagnostics
-                - -q
-                - ping
-            initialDelaySeconds: 20
+            tcpSocket:
+              port: amqp
             periodSeconds: 10
             timeoutSeconds: 5
           livenessProbe:
-            exec:
-              command:
-                - rabbitmq-diagnostics
-                - -q
-                - ping
-            initialDelaySeconds: 60
+            tcpSocket:
+              port: amqp
             periodSeconds: 20
             timeoutSeconds: 5
+          startupProbe:
+            tcpSocket:
+              port: amqp
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 30
       volumes:
         - name: rabbitmq-data
           persistentVolumeClaim:
